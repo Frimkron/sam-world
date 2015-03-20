@@ -64,55 +64,76 @@ def draw_sam(screen, idle_graphic, run_graphics, jump_graphic, offset, position,
                           screen.get_height()/2-graphic.get_height()/2+offset[1]))
     
     
+def find_position(tile_type, level, tile_size):
+    for j, row in enumerate(level):
+        for i, tile in enumerate(row):
+            if tile == tile_type:
+                return (i+0.5)*tile_size, (j+0.5)*tile_size             
+    return 0.0, 0.0
+    
+    
 T = 100
 H = 1
+S = 2
+F = 3
 LEVEL = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,T,T,T,T,T,T,T,T,0,T,T,T,0,T,T,T],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,T,T,T,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,T,T,T,T,T,T,T,T,T,0,0,0,0,0,0,T,T,T,T,T,T],
-    [0,0,0,0,0,0,H,0,H,0,H,0,H,0,H,0,0,0,0,0,0,H,H,H,H,H,H],
-    [0,0,0,0,0,0,H,0,H,0,H,0,H,0,H,0,0,0,0,0,0,H,0,H,0,H,0],
-    [0,0,0,0,0,0,H,0,H,0,H,0,H,0,H,0,0,0,0,0,0,H,0,H,0,H,0],
-    [0,0,0,0,0,0,H,0,H,0,H,0,H,0,H,0,0,0,0,0,0,H,0,H,0,H,0],
-    [0,0,0,0,0,0,H,0,H,0,H,0,H,0,H,0,0,0,0,0,0,H,0,H,0,H,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,S,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 ]
+# Sam can jump up 2 tiles and across 6 tiles
 TILE_SIZE = 50
-GRAVITY = 0.25
-JUMP_STRENGTH = 8.25
-MOVE_SPEED = 3.5
+GRAVITY = 0.5
+JUMP_STRENGTH = 11.8
+MOVE_SPEED = 5.0
 FIRST_COLLIDABLE_TILE = 100
 
 STATE_TITLE = 0
-STATE_GAME = 1
-STATE_FAILED = 2
+STATE_HELP = 1
+STATE_GAME = 2
+STATE_FAILED = 3
+STATE_WON = 4
 
 pygame.init()
 screen = pygame.display.set_mode((800,600))
 clock = pygame.time.Clock()
 
 G_TITLE = pygame.image.load("title.png")
+G_HELP = pygame.image.load("help.png")
 G_SAM_IDLE = pygame.image.load("sam-idle.png")
 G_SAM_RUN = [ pygame.image.load("sam-run1.png"), pygame.image.load("sam-run2.png") ]
 G_SAM_JUMP = pygame.image.load("sam-jump.png")
+G_SAM_WIN = pygame.image.load("sam-win.png")
+G_SAM_FAIL = pygame.image.load("sam-fail.png")
 G_BACKGROUND = pygame.image.load("background.png")
 G_TILES = {
-    100: pygame.image.load("platform.png"),
-    1: pygame.image.load("support.png"),
+    T: pygame.image.load("platform.png"),
+    H: pygame.image.load("support.png"),
+    F: pygame.image.load("exit.png"),
 }
 
-F_TEXT = pygame.font.Font("komika.ttf", 72)
+F_BIG = pygame.font.Font("komika.ttf", 72)
+F_SMALL = pygame.font.Font("komika.ttf", 36)
+
+START_POSITION = find_position(S, LEVEL, TILE_SIZE)
+FINISH_POSITION = find_position(F, LEVEL, TILE_SIZE)
 
 state = STATE_TITLE
 position = [0.0,0.0]
@@ -138,17 +159,37 @@ while True:
             sys.exit()
             
         if space_pressed:
-            position = [8*TILE_SIZE, 13*TILE_SIZE]
+            state = STATE_HELP
+            
+        screen.blit(G_TITLE, (0,0))
+        
+        press_space_text = F_BIG.render("Press space to start", True, (255,0,0))
+        screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
+                                       screen.get_height()/6*5-press_space_text.get_height()/2))
+
+    elif state == STATE_HELP:
+    
+        if space_pressed or escape_pressed:
+            position = list(START_POSITION)
             velocity = [0.0,0.0]
             landed = False
             state = STATE_GAME
             
-        screen.blit(G_TITLE, (0,0))
+        screen.blit(G_HELP, (0,0))
         
-        press_space_text = F_TEXT.render("Press space to start", True, (255,0,0))
+        line_y = 50
+        for line in ["This is some text that explains how to play and why",
+                     "Sam is jumping around all over the place and stuff.",
+                     "Now this is a story all about how my life got switched",
+                     "turned upside-down I'd like to take a minute so sit"]:
+            line_text = F_SMALL.render(line, True, (0,0,0))
+            screen.blit(line_text, (50,line_y))
+            line_y += 50
+            
+        press_space_text = F_BIG.render("Press space", True, (255,0,0))
         screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
                                        screen.get_height()/6*5-press_space_text.get_height()/2))
-    
+        
     elif state == STATE_GAME: 
 
         if escape_pressed:
@@ -184,6 +225,10 @@ while True:
             
         if position[1] >= len(LEVEL)*TILE_SIZE:
             state = STATE_FAILED
+            
+        if FINISH_POSITION[0]-TILE_SIZE/2 < position[0] < FINISH_POSITION[0]+TILE_SIZE/2 \
+                and FINISH_POSITION[1]-TILE_SIZE/2 < position[1] < FINISH_POSITION[1]+TILE_SIZE/2:
+            state = STATE_WON
     
         cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
         draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
@@ -199,14 +244,31 @@ while True:
         cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
         draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
         draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
-        draw_sam(screen, G_SAM_IDLE, G_SAM_RUN, G_SAM_JUMP, (0, G_SAM_IDLE.get_height()/2), position, velocity, landed, 
-                 TILE_SIZE)
+        screen.blit(G_SAM_FAIL, (screen.get_width()/2-G_SAM_FAIL.get_width()/2, screen.get_height()/2))
                  
-        gameover_text = F_TEXT.render("Whoops!", True, (255,0,0))
+        gameover_text = F_BIG.render("Whoops!", True, (255,0,0))
         screen.blit(gameover_text, (screen.get_width()/2-gameover_text.get_width()/2, 
                                     screen.get_height()/3-gameover_text.get_height()/2))
                                     
-        press_space_text = F_TEXT.render("Press space", True, (255,0,0))
+        press_space_text = F_BIG.render("Press space", True, (255,0,0))
+        screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
+                                       screen.get_height()/6*5-press_space_text.get_height()/2))
+             
+    elif state == STATE_WON:
+    
+        if space_pressed or escape_pressed:
+            state = STATE_TITLE
+            
+        cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
+        draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
+        draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
+        screen.blit(G_SAM_WIN, (screen.get_width()/2-G_SAM_WIN.get_width()/2, screen.get_height()/2))
+                 
+        congrats_text = F_BIG.render("Congratulations!", True, (255,0,0))
+        screen.blit(congrats_text, (screen.get_width()/2-congrats_text.get_width()/2, 
+                                    screen.get_height()/3-congrats_text.get_height()/2))
+                                    
+        press_space_text = F_BIG.render("Press space", True, (255,0,0))
         screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
                                        screen.get_height()/6*5-press_space_text.get_height()/2))
                  
