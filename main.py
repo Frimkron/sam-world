@@ -1,10 +1,19 @@
 """ 
-fill background, scroll buffer (srcalpha), clear edge tiles, blit edge tiles, blit buffer
-    -> 40%
-fill background, scroll buffer (colourkey), blit edge tiles, blit buffer
-    -> 50%
-fill background, clear buffer, draw previous buffer (srcalpha), blit edge tiles, blit buffer, swap buffers
-    -> 170%
+TODO: Platform tile
+TODO: Support tile
+TODO: Finish tile
+TODO: Poster tiles
+TODO: Window tile
+TODO: Title screen
+TODO: Win screen
+TODO: Help screen
+TODO: Sounds
+TODO: Music
+TODO: Code cleanup
+TODO: Code documentation
+TODO: Build executables
+TODO: Teeter graphics
+
 """
 
 import time
@@ -81,14 +90,18 @@ def draw_tiles(screen, tile_buffer, last_position, position, level, tile_graphic
     screen.blit(tile_buffer, (0,0))
                 
            
-def draw_sam(screen, idle_graphic, run_graphics, jump_graphic, offset, position, velocity, landed, tile_size):
-    if not landed:
+def draw_sam(screen, idle_graphic, run_graphics, jump_graphic, fall_graphic, offset, position, velocity, landed, 
+        tile_size):
+    if not landed and velocity[1] <= 0:
         graphic = jump_graphic
+        
+    elif not landed and velocity[1] > 0:
+        graphic = fall_graphic
     elif velocity[0] == 0.0:
         graphic = idle_graphic
     else:
         num = len(run_graphics)
-        graphic = run_graphics[int(position[0]//(tile_size/num)) % num]
+        graphic = run_graphics[int(position[0]//((tile_size*4)/num)) % num]
         
     if velocity[0] < 0.0:
         graphic = pygame.transform.flip(graphic, True, False)
@@ -112,53 +125,11 @@ H = 1   # support
 S = 2   # start positions
 F = 3   # finish
 Z = 101
-O = 4
+W = 4
 B = 5
 
 # The tiles of the level, in rows. Each number identifies a tile type. Zero, for example, is empty space
 LEVEL = [
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,S,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-    [H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H],
-]
-"""LEVEL = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -168,7 +139,7 @@ LEVEL = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,H,F,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,S,0,T,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,T,T,T,T,T,T,T,T,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,H,H,H,H,T,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -233,11 +204,11 @@ LEVEL = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,S,0,Z,Z,Z,0,H,H,H,H,H,H,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,Z,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,H,O,H,O,H,O,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,W,W,W,H,W,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,H,W,W,H,H,H,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,H,0,0,0,0,0,H,H,H,H,H,H,H,H,H,H,0,0,0,H,H,0,0,0,0,0,0,0,0,0,0,0],
-]"""
+]
 
 # Constants defining various aspects of Sam's movement
 SCREEN_SIZE = 1024, 768
@@ -247,6 +218,7 @@ JUMP_STRENGTH = 15.1        # Higher jump strength means Sam will jump higher
 ACCELERATION = 0.26         # The rate that Sam speeds up to full running speed
 DEACCELERATION = 0.26       # The rate that Sam skids to a stop after running
 MAX_SPEED = 6.46            # Sam's maximum running speed
+SAM_SIZE = 64
 FEET_WIDTH = 38             # the width of the bit of Sam that sits on the platform
 FIRST_COLLIDABLE_TILE = 100 # tile numbers at or above this value can be jumped on
 
@@ -263,19 +235,23 @@ pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 tile_buffer = pygame.Surface(SCREEN_SIZE,flags=pygame.locals.SRCALPHA)
 
-G_TITLE = pygame.image.load("title.png")
-G_HELP = pygame.image.load("help.png")
+G_TITLE = pygame.transform.scale(pygame.image.load("title.png"),SCREEN_SIZE)
+G_HELP = pygame.transform.scale(pygame.image.load("help.png"),SCREEN_SIZE)
 G_SAM_IDLE = pygame.image.load("sam-idle.png")
-G_SAM_RUN = [ pygame.image.load("sam-run1.png"), pygame.image.load("sam-run2.png") ]
+G_SAM_RUN = [ pygame.image.load("sam-run1.png"), 
+              pygame.image.load("sam-run2.png"), 
+              pygame.image.load("sam-run3.png"),
+              pygame.image.load("sam-run4.png"), ]
 G_SAM_JUMP = pygame.image.load("sam-jump.png")
-G_SAM_WIN = pygame.image.load("sam-win.png")
-G_SAM_FAIL = pygame.image.load("sam-fail.png")
+G_SAM_FALL = pygame.image.load("sam-fall.png")
+G_SAM_WIN = pygame.transform.scale(pygame.image.load("sam-win.png"),(64,64))
+G_SAM_FAIL = pygame.transform.scale(pygame.image.load("sam-fail.png"),(64,64))
 G_BACKGROUND = pygame.image.load("background.png").convert(screen)
 G_TILES = {
     T: pygame.image.load("platform.png"),
     Z: pygame.image.load("support-platform.png"),
     H: pygame.image.load("support.png"),
-    O: pygame.image.load("window.png"),
+    W: pygame.image.load("window.png"),
     B: pygame.image.load("window-bc.png"),
     F: pygame.image.load("exit.png"),
 }
@@ -389,23 +365,11 @@ while True:
                 and FINISH_POSITION[1]-TILE_SIZE/2 < position[1] < FINISH_POSITION[1]+TILE_SIZE/2:
             state = STATE_WON
     
-        cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
+        cam_position = [position[0], position[1]-SAM_SIZE]
         start_time = time.time()
         draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
-        """tile_buffer.scroll(64,64)
-        tile_buffer.fill((0,0,0,0),((0,0),(1024,64)))
-        tile_buffer.fill((0,0,0,0),((0,64),(64,768)))
-        i = 0
-        while i < 1024:
-            tile_buffer.blit(G_TILES[H if random.random()<0.5 else T],(i,0))
-            i += 64
-        i = 64
-        while i < 758:
-            tile_buffer.blit(G_TILES[H if random.random()<0.5 else T],(0,i))
-            i += 64
-        screen.blit(tile_buffer,(0,0))"""
         draw_tiles(screen, tile_buffer, last_cam_position, cam_position, LEVEL, G_TILES, TILE_SIZE)
-        draw_sam(screen, G_SAM_IDLE, G_SAM_RUN, G_SAM_JUMP, (0, G_SAM_IDLE.get_height()/2), position, velocity, landed, 
+        draw_sam(screen, G_SAM_IDLE, G_SAM_RUN, G_SAM_JUMP, G_SAM_FALL, (0, SAM_SIZE/2), position, velocity, landed, 
                  TILE_SIZE)
         end_time = time.time()
         print(int((end_time-start_time)/(1.0/60.0)*100))
@@ -417,9 +381,9 @@ while True:
         if space_pressed or escape_pressed:
             state = STATE_TITLE
             
-        cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
+        cam_position = [position[0], position[1]-SAM_SIZE]
         draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
-        draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
+        #draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
         screen.blit(G_SAM_FAIL, (screen.get_width()/2-G_SAM_FAIL.get_width()/2, screen.get_height()/2))
                  
         gameover_text = F_BIG.render("Whoops!", True, (255,0,0))
@@ -435,9 +399,9 @@ while True:
         if space_pressed or escape_pressed:
             state = STATE_TITLE
             
-        cam_position = [position[0], position[1]-G_SAM_IDLE.get_height()]
+        cam_position = [position[0], position[1]-SAM_SIZE]
         draw_background(screen, G_BACKGROUND, cam_position, (len(LEVEL[0]), len(LEVEL)), TILE_SIZE)
-        draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
+        #draw_tiles(screen, cam_position, LEVEL, G_TILES, TILE_SIZE)
         screen.blit(G_SAM_WIN, (screen.get_width()/2-G_SAM_WIN.get_width()/2, screen.get_height()/2))
                  
         congrats_text = F_BIG.render("Congratulations!", True, (255,0,0))
