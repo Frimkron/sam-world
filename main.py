@@ -1,12 +1,11 @@
 """ 
 TODO: Better running eyes
-TODO: Title screen
 TODO: Win screen
-TODO: Help screen
 TODO: Sounds
 TODO: Code cleanup
 TODO: Code documentation
 TODO: Build executables
+TODO: Timer for speedruns
 TODO: WASD keys
 TODO: Second fall frame
 TODO: Music
@@ -22,38 +21,90 @@ import pygame
 import pygame.locals
 
 
-# returns the x and y coordinates of the top-left corner of a tile, given the tile's row and column
+### FUNCTIONS ##########################################################################################################
+
+
 def tile_position(tile_ref, tile_size):
+    """Returns the x and y coordinates of the top-left corner of a tile, given the tile's row and column.
+       tile_ref is a 2-item sequence representing the column and row of the tile
+       tile_size is the size of each tile as an int."""
     return tile_ref[0]*tile_size, tile_ref[1]*tile_size
 
 
-# returns 
 def tile_ref(position, tile_size):
+    """Returns the column and row of the tile at the given x and y coordinates.
+    position is a pair of x, y coordinates as a 2-item sequence 
+    tile_size is the size of each tile as an int"""
+    # The coordinates are divided by the tile size and rounded down to the nearest integer
     return int(math.floor(position[0] / tile_size)), int(math.floor(position[1] / tile_size))
     
 
 def tile_type(tile_ref, level, ground_default, sky_default):
+    """Returns the tile type at the given column and row in the level. 
+       tile_ref is the column and row of a tile as a 2-item sequence
+       level is the nested list of tile types representing the level map. 
+       ground_default is the tile type to return if the tile_ref is below the bottom of the level. 
+       sky_default is the tile type to return if the tile_ref is above, to the left of, or to the right of the bounds of
+       the level."""
+    #
+    #           sky    
+    #           default
+    #         +--------+
+    # sky     | level  | sky
+    # default |        | default
+    #    - - -+--------+- - -
+    #           ground 
+    #           default
+    #
+    # return default 'ground' tile if reference is off the bottom of the level
     if tile_ref[1] >= len(level):
         return ground_default
+    # look up tile type in nested level list if reference is inside bounds of level
     elif len(level)>0 and 0 <= tile_ref[0] < len(level[0]) and 0 <= tile_ref[1] < len(level):
         return level[tile_ref[1]][tile_ref[0]]
+    # otherwise reference is above, left of or right of the level bounds. return default 'sky' tile
     else:
         return sky_default
 
 
 def draw_background(screen, background, position, level_size, tile_size):
+    """blits the given background graphic to to the screen surface. The background is scrolled according to the player's
+       screen is the screen surface to blit onto
+       background is the background surface to blit
+       position in the level to give a parallax effect as they move around.
+       position is a 2-item sequence representing x and y coordinate of the player
+       level_size is a 2-item sequence representing tile number of columns and rows in the level
+       tile_size is the size of each tile as an int"""
+    # establish range of coordinates that the top left of the screen can be at within the background image
     min_x = 0.0
     max_x = background.get_width()-screen.get_width()
     min_y = 0.0
     max_y = background.get_height()-screen.get_height()
+    # calculate how far across the level the player is, horizontally and vertically, each as a value from 0 to 1
     x_amount = position[0] / (level_size[0]*tile_size)
     y_amount = position[1] / (level_size[1]*tile_size)
+    # apply these amounts to the coordinate ranges to get the top left corner of the section of background graphic to
+    # use
     source_x = int(min_x + (max_x-min_x) * x_amount)
     source_y = int(min_y + (max_y-min_y) * y_amount)
+    # take a screen-sized section of the background graphic, starting at the calculated position, and blit onto the
+    # screen surface
     screen.blit(background, (0,0), (source_x, source_y, screen.get_width(), screen.get_height()))
 
 
 def draw_tiles(screen, tile_buffer, last_position, position, level, tile_graphics, ground_tile, sky_tile, tile_size):
+    """blits the section of level tiles currently visible to the player onto the screen surface.
+       screen is the screen surface to blit onto
+       tile_buffer is a screen-sized surface onto which the tiles are blitted before being blitted to the screen 
+       surface. The buffer should contain the blitted tiles from the previous frame so that they can be reused if
+       possible       
+       last_position is the x,y position of the player in the level from the previous frame, as a 2-item sequence
+       positon is the x,y position of the player in the level this frame, as a 2-item sequence
+       level is the nested list of tile types representing the level
+       tile_graphics is the list of graphics representing the available tile types
+       ground_tile is the tile graphic used to draw tiles below the bottom of the level
+       sky_tile is the tile graphic used to draw tiles above, to the left of, and to the right of the level
+       tile_size is the size of each tile as an int"""
     position = map(int, position)
     last_position = map(int, last_position)
     scrolled_amount = [position[0]-last_position[0], position[1]-last_position[1]]
@@ -92,6 +143,18 @@ def draw_tiles(screen, tile_buffer, last_position, position, level, tile_graphic
            
 def draw_sam(screen, idle_graphic, run_graphics, jump_graphic, fall_graphic, offset, position, velocity, landed, 
         tile_size):
+    """blit the appopriate graphic of Sam to the screen surface at the given offset from the centre.
+       screen is the screen surface
+       idle_graphic is the graphic to use when sam is stationary
+       run_graphics is a sequence of animation frames used when sam is running
+       jump_graphic is used when sam is jumping upwards
+       fall_graphic is used when sam is falling downwards
+       offset is the x,y offset from the screen centre at which to draw sam, as a 2-item sequence
+       position is the x,y position of the player in the level as a 2-item sequence
+       velocity is the current x and y speed of the player as a 2-item sequence
+       landed is a boolean indicating whether sam is on a platform or not
+       tile_size is the size of each tile, as an integer"""
+    # if sam is in mid-air 
     if not landed and velocity[1] <= 0:
         graphic = jump_graphic
         
@@ -116,6 +179,9 @@ def find_position(tile_type, level, tile_size):
             if tile == tile_type:
                 return (i+0.5)*tile_size, (j+0.5)*tile_size             
     return 0.0, 0.0
+
+
+##### CONSTANTS ########################################################################################################
     
     
 TILE_START = 1
@@ -252,13 +318,17 @@ STATE_GAME = 2
 STATE_FAILED = 3
 STATE_WON = 4
 
+
+#### MAIN PROGRAM ######################################################################################################
+
+
 pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE,pygame.locals.DOUBLEBUF|pygame.locals.HWSURFACE)
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 tile_buffer = pygame.Surface(SCREEN_SIZE,flags=pygame.locals.SRCALPHA)
 
-G_TITLE = pygame.transform.scale(pygame.image.load("title.png"),SCREEN_SIZE)
+G_TITLE = pygame.transform.scale(pygame.image.load("title.png"),SCREEN_SIZE).convert(screen)
 G_HELP = pygame.transform.scale(pygame.image.load("help.png"),SCREEN_SIZE)
 G_SAM_IDLE = pygame.image.load("sam-idle.png")
 G_SAM_RUN = [ pygame.image.load("sam-run1.png"), 
@@ -296,7 +366,7 @@ while True:
         if event.type == pygame.locals.KEYDOWN:
             if event.key == pygame.locals.K_ESCAPE:
                 escape_pressed = True
-            elif event.key == pygame.locals.K_SPACE:
+            elif event.key in (pygame.locals.K_SPACE, pygame.locals.K_UP, pygame.locals.K_w):
                 space_pressed = True
 
     if state == STATE_TITLE: 
@@ -309,10 +379,7 @@ while True:
             
         screen.blit(G_TITLE, (0,0))
         
-        press_space_text = F_BIG.render("Press space to start", True, (255,0,0))
-        screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
-                                       screen.get_height()/6*5-press_space_text.get_height()/2))
-
+        
     elif state == STATE_HELP:
     
         if space_pressed or escape_pressed:
@@ -323,28 +390,16 @@ while True:
             
         screen.blit(G_HELP, (0,0))
         
-        line_y = 50
-        for line in ["This is some text that explains how to play and why",
-                     "Sam is jumping around all over the place and stuff.",
-                     "Now this is a story all about how my life got switched",
-                     "turned upside-down I'd like to take a minute so sit"]:
-            line_text = F_SMALL.render(line, True, (0,0,0))
-            screen.blit(line_text, (50,line_y))
-            line_y += 50
-            
-        press_space_text = F_BIG.render("Press space", True, (255,0,0))
-        screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
-                                       screen.get_height()/6*5-press_space_text.get_height()/2))
         
     elif state == STATE_GAME: 
 
         if escape_pressed:
             state = STATE_TITLE
 
-        if pygame.key.get_pressed()[pygame.locals.K_LEFT]:
+        if pygame.key.get_pressed()[pygame.locals.K_LEFT] or pygame.key.get_pressed()[pygame.locals.K_a]:
             if velocity[0] > -MAX_SPEED:
                 velocity[0] -= ACCELERATION
-        elif pygame.key.get_pressed()[pygame.locals.K_RIGHT]:
+        elif pygame.key.get_pressed()[pygame.locals.K_RIGHT] or pygame.key.get_pressed()[pygame.locals.K_d]:
             if velocity[0] < MAX_SPEED:
                 velocity[0] += ACCELERATION
         else:
@@ -435,7 +490,7 @@ while True:
         last_cam_position = cam_position
 
     fps_text = F_SMALL.render(str(int(clock.get_fps())), True, (0,0,0))
-    screen.blit(fps_text, (0,0))
+    #screen.blit(fps_text, (0,0))
                  
     pygame.display.flip()
     clock.tick(60)
