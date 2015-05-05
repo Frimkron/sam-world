@@ -424,8 +424,15 @@ STATE_WON = 4
 
 #### MAIN PROGRAM ######################################################################################################
 
+# Set the sound mixer's default arguments. This must be done here because on Windows, the mixer is initialised with the
+# default arguments in pygame.init() rather than by the actual mixer init method
+pygame.mixer.pre_init(buffer=512)
+
 # Initialise Pygame
 pygame.init()
+
+# Initialise the sound mixer with a lower buffer size than the default, to reduce latency
+pygame.mixer.init(buffer=512)
 
 # Set the screen resolution and store the screen surface for drawing on
 screen = pygame.display.set_mode(SCREEN_SIZE,pygame.locals.DOUBLEBUF|pygame.locals.HWSURFACE|pygame.locals.FULLSCREEN)
