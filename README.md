@@ -8,7 +8,7 @@ Installing and Running
 Extract the zip archive to a folder and run `samworld-win.exe`
 
 ### Linux ###
-Extract the zip archice to a directory and run `samworld-linux`
+Extract the zip archive to a directory and run `samworld-linux`
 
 ### Mac OS ###
 Extract the zip archive to a directory and run `samworld-mac`
@@ -76,10 +76,12 @@ commercial use. For more information see
 The Code
 --------
 
-This game was written in [Python] 2.7 using [PyGame]. You will need to install
-both to get the code running. It was packaged as binaries using [PyInstaller].
-To get the very latest version, or fork the project, contribute patches, etc,
-check out the GitHub page at <http://github.com/Frimkron>.
+This game was written in [Python] using [PyGame]. You will need to install
+both to get the code running. Python 2.7+ or 3.4+ should work fine. Note 
+you'll need Pygame 1.9.2 if using Python 3.4. The game was packaged as binaries
+using [PyInstaller]. To get the very latest version of the game, or fork the
+project, contribute patches, etc, check out the GitHub page at 
+<http://github.com/Frimkron/sam-world>.
 
 [Python]: https://www.python.org/
 [PyGame]: http://pygame.org

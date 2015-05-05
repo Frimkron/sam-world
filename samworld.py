@@ -24,12 +24,6 @@
 #  |      :
 #      viewport                 
 
-""" 
-TODO: Better running eyes
-TODO: Sounds
-TODO: Code documentation
-TODO: Build executables
-"""
 
 import time
 import sys
@@ -135,8 +129,8 @@ def draw_tiles(screen, tile_buffer, last_position, position, level, tile_graphic
        tile_size is the size of each tile as an int"""
        
     # truncate the positon and last_position coordinates from floats to integers
-    position = map(int, position)
-    last_position = map(int, last_position)
+    position = list(map(int, position))
+    last_position = list(map(int, last_position))
     
     # calculate the x and y amount the camera moved since the last frame
     scrolled_amount = [position[0]-last_position[0], position[1]-last_position[1]]
@@ -467,9 +461,16 @@ G_TILES = [None, None]
 for i in range(2,26):
     G_TILES.append(pygame.image.load("tile{:0>2}.png".format(i)))
 
-# Load the fonts
-F_BIG = pygame.font.Font("komika.ttf", 72)
+# Load the fonts and store in F_* variables
+F_BIG = pygame.font.Font("komika.ttf", 100)
 F_SMALL = pygame.font.Font("komika.ttf", 36)
+
+# Load the sound effects and store in S_* variables
+S_JUMP = pygame.mixer.Sound("jump.wav")
+S_LAND = pygame.mixer.Sound("land.wav")
+S_WIN = pygame.mixer.Sound("win.wav")
+S_FAIL = pygame.mixer.Sound("fail.wav")
+S_PROCEED = pygame.mixer.Sound("proceed.wav")
 
 # Find the start and finish tiles in the level definition and store their x,y coordinates in these constants
 START_POSITION = find_position(TILE_START, LEVEL, TILE_SIZE)
@@ -511,8 +512,9 @@ while True:
         if escape_pressed:
             sys.exit()
             
-        # if player hits the jump button, proceed to the "how to play" screen
+        # if player hits the jump button, proceed to the "how to play" screen and play sound
         if space_pressed:
+            S_PROCEED.play()
             state = STATE_HELP
             
         # draw the title screen graphic to the screen surface
@@ -522,11 +524,13 @@ while True:
     # The "how to play" screen
     elif state == STATE_HELP:  #----------------------------------------------------------------------------------------
     
-        # if the player hits the jump button or the escape key, set up the game and proceed to the main game state
+        # if the player hits the jump button or the escape key, set up the game and proceed to the main game state and
+        # play sound
         if space_pressed or escape_pressed:
             position = list(START_POSITION)
             velocity = [0.0,0.0]
             landed = False
+            S_PROCEED.play()
             state = STATE_GAME
             
         # draw the "how to play" screen graphic to the screen surface
@@ -564,10 +568,12 @@ while True:
             else:
                 velocity[0] = 0.0
             
-        # if player hits a jump button and Sam is on a platform, make Sam jump by setting her vertical speed
+        # if player hits a jump button and Sam is on a platform, make Sam jump by setting her vertical speed. 
+        # Also play the jump sound effect
         if space_pressed and landed:
             velocity[1] = -JUMP_STRENGTH
             landed = False
+            S_JUMP.play()  
     
         # store the column and row of the tile Sam was at before moving - this is used later
         tile_before = tile_ref(position, TILE_SIZE)
@@ -592,6 +598,11 @@ while True:
                 and (tile_type(tile_after_left, LEVEL, 0, 0) in COLLIDABLE_TILES
                   or tile_type(tile_after_right, LEVEL, 0, 0) in COLLIDABLE_TILES):
                   
+            # If Sam was falling fast enough, play landing sound effect, otherwise don't, so that it doens't play every
+            # frame
+            if velocity[1] > GRAVITY:
+                S_LAND.play()
+                  
             # Stop Sam moving vertically and position her just above the platform she fell into
             velocity[1] = 0.0
             position[1] = tile_position(tile_after, TILE_SIZE)[1] - 0.001
@@ -601,13 +612,15 @@ while True:
         else:
             landed = False
             
-        # If Sam has fallen past the bottom of the level, go to the "game over" screen
+        # If Sam has fallen past the bottom of the level, go to the "game over" screen and play the sound effect
         if position[1] >= len(LEVEL)*TILE_SIZE:
+            S_FAIL.play()
             state = STATE_FAILED
             
-        # If Sam is on the finish tile, go to the "congratulations" screen
+        # If Sam is on the finish tile, go to the "congratulations" screen and play the sound effect
         if FINISH_POSITION[0]-TILE_SIZE/2 < position[0] < FINISH_POSITION[0]+TILE_SIZE/2 \
                 and FINISH_POSITION[1]-TILE_SIZE/2 < position[1] < FINISH_POSITION[1]+TILE_SIZE/2:
+            S_WIN.play()
             state = STATE_WON
     
         # The camera is the imaginary object that the viewport is centered on. Store it's position as just above Sam's
@@ -650,12 +663,12 @@ while True:
         screen.blit(G_SAM_FAIL, (screen.get_width()/2-G_SAM_FAIL.get_width()/2, screen.get_height()/2))
                  
         # Draw the game over text
-        gameover_text = F_BIG.render("Whoops!", True, (255,0,0))
+        gameover_text = F_BIG.render("Whoops!", True, (64,0,0))
         screen.blit(gameover_text, (screen.get_width()/2-gameover_text.get_width()/2, 
                                     screen.get_height()/3-gameover_text.get_height()/2))
                                  
         # Draw the "press space" text   
-        press_space_text = F_BIG.render("Press space", True, (255,0,0))
+        press_space_text = F_BIG.render("Press space", True, (64,0,0))
         screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
                                        screen.get_height()/6*5-press_space_text.get_height()/2))
                                      
@@ -683,12 +696,12 @@ while True:
         screen.blit(G_SAM_WIN, (screen.get_width()/2-G_SAM_WIN.get_width()/2, screen.get_height()/2))
            
         # Draw the "congratulations" text      
-        congrats_text = F_BIG.render("Congratulations!", True, (255,0,0))
+        congrats_text = F_BIG.render("Congratulations!", True, (255,255,0))
         screen.blit(congrats_text, (screen.get_width()/2-congrats_text.get_width()/2, 
                                     screen.get_height()/3-congrats_text.get_height()/2))
                                     
         # Draw the "press space" text
-        press_space_text = F_BIG.render("Press space", True, (255,0,0))
+        press_space_text = F_BIG.render("Press space", True, (255,255,0))
         screen.blit(press_space_text, (screen.get_width()/2-press_space_text.get_width()/2,
                                        screen.get_height()/6*5-press_space_text.get_height()/2))
                                        
