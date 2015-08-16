@@ -10,6 +10,12 @@ Extract the .zip archive to a folder and run `samworld.exe`
 ### Linux ###
 Extract the .tar.gz archive to a directory and run `samworld`
 
+### Setting the Screen Resolution ###
+
+If the default screen resolution is not supported on your system, or the game
+runs slowly, you can try overriding the default by specifying a new resolution
+on the command line. e.g: `samworld.exe 640x480`
+
 How to Play
 -----------
 

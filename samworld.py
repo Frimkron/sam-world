@@ -150,8 +150,8 @@ def draw_tiles(screen, tile_buffer, last_position, position, level, tile_graphic
     top_left_draw_pos = -(top_left_position[0] % tile_size), -(top_left_position[1] % tile_size)
     
     # calculate how many rows and colums of tiles must be drawn to cover the screen
-    rows_to_draw = int(float(screen.get_height()) / tile_size + 1)
-    cols_to_draw = int(float(screen.get_width()) / tile_size + 1)
+    rows_to_draw = int(float(screen.get_height()) / tile_size + 2)
+    cols_to_draw = int(float(screen.get_width()) / tile_size + 2)
     
     # calculate the bounds of the screen region we don't need to re-draw the tiles for
     buffered_top_left = [0-scrolled_amount[0], 0-scrolled_amount[1]]
@@ -393,7 +393,7 @@ def define_level():
 # Call the function above and store the result in LEVEL
 LEVEL = define_level()
 
-SCREEN_SIZE = 1024, 768     # The screen resolution the game runs at.
+SCREEN_SIZE = 1024, 768     # The screen resolution the game runs at by default
 TILE_SIZE = 64              # The size of each tile (they're square so width and height use the same value)
 
 # These constants define various aspects of Sam's movement. They were fine-tuned by trial and error.
@@ -424,6 +424,10 @@ STATE_WON = 4
 
 #### MAIN PROGRAM ######################################################################################################
 
+# override default screen resolution if specified on command line
+if len(sys.argv) > 1:
+    SCREEN_SIZE = tuple(map(int,sys.argv[1].split('x')))
+
 # Set the sound mixer's default arguments. This must be done here because on Windows, the mixer is initialised with the
 # default arguments in pygame.init() rather than by the actual mixer init method
 pygame.mixer.pre_init(buffer=512)
@@ -448,9 +452,10 @@ tile_buffer = pygame.Surface(SCREEN_SIZE,flags=pygame.locals.SRCALPHA)
 
 # Load graphics and store them in G_* variables. We call "convert" on our opaque background graphics to make pygame
 # convert them to an optimal format for the screen buffer, which disables per-pixel alpha on them but makes them faster
-# to draw
-G_TITLE = pygame.image.load("title.png").convert(screen)
-G_HELP = pygame.image.load("help.png").convert(screen)
+# to draw. We use smoothscale to resize the screen-sized images to whatever the screen size might have been overridden
+# to.
+G_TITLE = pygame.transform.smoothscale(pygame.image.load("title.png").convert(screen), SCREEN_SIZE)
+G_HELP = pygame.transform.smoothscale(pygame.image.load("help.png").convert(screen), SCREEN_SIZE)
 G_SAM_IDLE = pygame.image.load("sam-idle.png")
 G_SAM_RUN = [ pygame.image.load("sam-run1.png"), 
               pygame.image.load("sam-run2.png"), 
